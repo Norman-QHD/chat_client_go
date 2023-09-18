@@ -39,7 +39,7 @@ func NewClient(serverIp string, serverPort int) *Client {
 	return client
 }
 
-// 处理server回应的消息,直接显示到标准输出即可
+// DealResponse 处理server回应的消息,直接显示到标准输出即可
 func (client *Client) DealResponse() {
 	//等同于创建buf,然后读取buf,再打印到页面上.
 	//一旦client.conn有数据,就直接copy到stdout标准输出上,并且永久阻塞监听
@@ -56,6 +56,39 @@ func (client *Client) DealResponse() {
 	client.conn.Read(buf)
 	fmt.Printf(buf)
 	}*/
+}
+
+func (client *Client) PublicChat() {
+	var chatMsg string
+	//提示用户输入信息
+	fmt.Println(">>>>请输入聊天内容,exit退出.")
+	_, err := fmt.Scanln(&chatMsg)
+	if err != nil {
+		fmt.Println("获取用户输入错误:", err)
+		return
+	}
+
+	for chatMsg != "exit" {
+		//发给服务器
+
+		if len(chatMsg) != 0 {
+			sendMsg := chatMsg + "\n"
+
+			_, err := client.conn.Write([]byte(sendMsg))
+			if err != nil {
+				fmt.Println("conn write err:", err)
+				break
+			}
+		}
+
+		chatMsg = ""
+		fmt.Println(">>>>请输入聊天内容,exit退出.")
+		_, err := fmt.Scanln(&chatMsg)
+		if err != nil {
+			fmt.Println("获取用户输入错误:", err)
+			return
+		}
+	}
 }
 
 func (client *Client) UpdateName() bool {
@@ -105,7 +138,7 @@ func (client *Client) Run() {
 		switch client.flag {
 		case 1:
 			//公聊模式
-			fmt.Println("公聊模式")
+			client.PublicChat()
 			break
 		case 2:
 			//私聊模式
